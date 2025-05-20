@@ -1,36 +1,20 @@
 {
-  "name": "puppeteer-render-deploy",
+  "name": "puppeteer-proxy",
   "version": "1.0.0",
-  "description": "Demo Scraping with Puppeteer on Server Render.com",
+  "description": "Puppeteer headless browser proxy",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index",
-    "build": "echo \"Nothing do build.\""
-  },
-  "author": "Artur Medeiros <contato@arjos.com.br>",
-  "keywords": [
-    "puppeteer",
-    "render",
-    "render.com",
-    "deploy",
-    "docker"
-  ],
-  "license": "ISC",
-  "dependencies": {
-    "dotenv": "^16.0.3",
-    "express": "^5.0.0",
-    "nodemon": "^3.1.9",
-    "puppeteer": "^24.1.1"
-  },
-  "type": "module",
-  "engines": {
-    "node": ">=18"
-  }
-}
-{
   "scripts": {
     "start": "node index.js",
     "postinstall": "npx puppeteer browsers install chrome"
-  }
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "puppeteer": "^21.3.8",
+    "dotenv": "^16.3.1"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "author": "Your Name",
+  "license": "MIT"
 }
