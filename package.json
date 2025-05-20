@@ -28,3 +28,9 @@
     "node": ">=18.0.0"
   }
 }
+{
+  "scripts": {
+    "start": "node index.js",
+    "postinstall": "npx puppeteer browsers install chrome"
+  }
+}
