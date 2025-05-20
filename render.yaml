@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: puppeteer-proxy
+    env: node
+    plan: free
+    buildCommand: npm install && npx puppeteer browsers install chrome
+    startCommand: npm start
