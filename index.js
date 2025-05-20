@@ -2,61 +2,110 @@ import express from "express";
 import puppeteer from "puppeteer";
 import * as dotenv from "dotenv";
 import path from "path";
+import { fileURLToPath } from "url";
+
 dotenv.config();
 
 const app = express();
-
 app.use(express.static("public"));
 
-app.get("/", async (req, res) => {
-    try {
-        console.log("Server UP!", {request: req});
-        res.send({ msg: "Server is running.", success: true, status_code: 200 });
-    } catch (error) {
-        console.error("Error running the script:", error);
-        res.status(500).send({
-            msg: "Error running the script. Check the logs for more details.",
-            success: false,
-            status_code: 500
-        });
-    }
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// ========== ROOT ==========
+app.get("/", (req, res) => {
+  res.send({
+    msg: "🟢 Puppeteer Proxy Running",
+    endpoints: ["/screenshot?url=", "/html?url=", "/cookies?url="],
+    status: "success",
+  });
 });
 
+// ========== /screenshot ==========
+app.get("/screenshot", async (req, res) => {
+  const targetUrl = req.query.url;
+  if (!targetUrl || !/^https?:\/\//i.test(targetUrl)) {
+    return res.status(400).json({ error: "Invalid or missing URL" });
+  }
 
-app.get("/scrape", async (req, res) => {
-    let browser;
-    try {
-        console.log("Starting Puppeteer...");
-        browser = await puppeteer.launch({
-            args: ["--disable-setuid-sandbox", "--no-sandbox", "--single-process", "--no-zygote"],
-            timeout: 60000,
-        });
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
 
-        const page = await browser.newPage();
-        const url = "https://www.polovniautomobili.com/motori/pretraga?price_to=700&engine_volume_from=125&sort=1&type%5B0%5D=scooter&without_price=1&showOldNew=both&details=1";
-        await page.goto(url, { waitUntil: "domcontentloaded" });
+    const page = await browser.newPage();
+    await page.goto(targetUrl, { waitUntil: "networkidle2", timeout: 20000 });
 
-        // Take a screenshot and save it in the public folder
-        const screenshotPath = path.join("public", "screenshot.png");
-        await page.screenshot({ path: screenshotPath, fullPage: true });
-        console.log("Screenshot taken:", screenshotPath);
+    const screenshotBuffer = await page.screenshot({ fullPage: true });
+    await browser.close();
 
-        res.send({ screenshot_url: "/screenshot.png", success: true });
-    } catch (error) {
-        console.error("Error scraping the website:", error);
-        res.status(500).send({
-            msg: "Error scraping the website. Check the logs for more details.",
-            success: false,
-            error: error.toString(),
-        });
-    } finally {
-        if (browser) {
-            await browser.close();
-        }
-    }
+    res.set("Content-Type", "image/png");
+    return res.send(screenshotBuffer);
+  } catch (err) {
+    if (browser) await browser.close();
+    console.error("❌ Screenshot Error:", err.message);
+    return res.status(500).json({ error: "Failed to fetch screenshot", details: err.message });
+  }
 });
 
+// ========== /html ==========
+app.get("/html", async (req, res) => {
+  const targetUrl = req.query.url;
+  if (!targetUrl || !/^https?:\/\//i.test(targetUrl)) {
+    return res.status(400).json({ error: "Invalid or missing URL" });
+  }
+
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+
+    const page = await browser.newPage();
+    await page.goto(targetUrl, { waitUntil: "domcontentloaded", timeout: 20000 });
+
+    const content = await page.content();
+    await browser.close();
+
+    res.set("Content-Type", "text/html");
+    return res.send(content);
+  } catch (err) {
+    if (browser) await browser.close();
+    console.error("❌ HTML Fetch Error:", err.message);
+    return res.status(500).json({ error: "Failed to fetch HTML", details: err.message });
+  }
+});
+
+// ========== /cookies ==========
+app.get("/cookies", async (req, res) => {
+  const targetUrl = req.query.url;
+  if (!targetUrl || !/^https?:\/\//i.test(targetUrl)) {
+    return res.status(400).json({ error: "Invalid or missing URL" });
+  }
+
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+
+    const page = await browser.newPage();
+    await page.goto(targetUrl, { waitUntil: "domcontentloaded", timeout: 20000 });
+
+    const cookies = await page.cookies();
+    await browser.close();
+
+    res.json({ cookies });
+  } catch (err) {
+    if (browser) await browser.close();
+    console.error("❌ Cookie Fetch Error:", err.message);
+    return res.status(500).json({ error: "Failed to fetch cookies", details: err.message });
+  }
+});
+
+// ========== LAUNCH ==========
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`✅ Puppeteer proxy running on port ${PORT}`);
 });
