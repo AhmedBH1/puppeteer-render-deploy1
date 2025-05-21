@@ -24,21 +24,22 @@ app.get("/", (req, res) => {
 
 // ========== Browser Launcher ==========
 async function launchBrowser() {
-  let executablePath = await chromium.executablePath;
-
-  // Render doesn't support chrome-aws-lambda in all instances, use system Chromium
-  if (!executablePath) {
-    executablePath = "/usr/bin/chromium-browser"; // ✅ Known Render-compatible path
-    console.warn("⚠️ chrome-aws-lambda not available, using system Chromium:", executablePath);
-  }
+  const executablePath = "/usr/bin/google-chrome"; // ✅ Matches Dockerfile
 
   return await puppeteer.launch({
-    args: chromium.args,
     executablePath,
-    headless: chromium.headless,
-    defaultViewport: chromium.defaultViewport,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--no-zygote',
+      '--single-process',
+      '--headless'
+    ]
   });
 }
+
 
 // ========== /screenshot ==========
 app.get("/screenshot", async (req, res) => {
