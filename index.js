@@ -24,7 +24,7 @@ app.get("/", (req, res) => {
 
 // ========== Browser Launcher ==========
 async function launchBrowser() {
-  const executablePath = "/usr/bin/google-chrome"; // ✅ Matches Dockerfile
+  const executablePath = "/usr/bin/chromium-browser";
 
   return await puppeteer.launch({
     executablePath,
@@ -39,7 +39,6 @@ async function launchBrowser() {
     ]
   });
 }
-
 
 // ========== /screenshot ==========
 app.get("/screenshot", async (req, res) => {
