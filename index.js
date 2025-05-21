@@ -1,5 +1,6 @@
 import express from "express";
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
+import chromium from "chrome-aws-lambda";
 import * as dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
