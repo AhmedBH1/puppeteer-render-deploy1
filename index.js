@@ -24,9 +24,12 @@ app.get("/", (req, res) => {
 
 // ========== Browser Launcher ==========
 async function launchBrowser() {
-  const executablePath = await chromium.executablePath;
+  let executablePath = await chromium.executablePath;
+
+  // Fallback for environments like Render where chrome-aws-lambda won't resolve
   if (!executablePath) {
-    throw new Error("❌ chrome-aws-lambda executablePath not found");
+    executablePath = "/usr/bin/google-chrome" || "/usr/bin/chromium-browser";
+    console.warn("⚠️ Falling back to system Chrome:", executablePath);
   }
 
   return await puppeteer.launch({
