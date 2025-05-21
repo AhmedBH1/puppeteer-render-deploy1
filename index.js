@@ -22,6 +22,16 @@ app.get("/", (req, res) => {
   });
 });
 
+// ========== Browser Launcher ==========
+async function launchBrowser() {
+  return await puppeteer.launch({
+    args: chromium.args,
+    executablePath: await chromium.executablePath,
+    headless: chromium.headless,
+    defaultViewport: chromium.defaultViewport,
+  });
+}
+
 // ========== /screenshot ==========
 app.get("/screenshot", async (req, res) => {
   const targetUrl = req.query.url;
@@ -31,14 +41,7 @@ app.get("/screenshot", async (req, res) => {
 
   let browser;
   try {
-    browser = await puppeteer.launch({
-  args: chromium.args,
-  executablePath: await chromium.executablePath,
-  headless: chromium.headless,
-  defaultViewport: chromium.defaultViewport,
-}
-);
-
+    browser = await launchBrowser();
     const page = await browser.newPage();
     await page.goto(targetUrl, { waitUntil: "networkidle2", timeout: 20000 });
 
@@ -46,11 +49,11 @@ app.get("/screenshot", async (req, res) => {
     await browser.close();
 
     res.set("Content-Type", "image/png");
-    return res.send(screenshotBuffer);
+    res.send(screenshotBuffer);
   } catch (err) {
     if (browser) await browser.close();
     console.error("❌ Screenshot Error:", err.message);
-    return res.status(500).json({ error: "Failed to fetch screenshot", details: err.message });
+    res.status(500).json({ error: "Failed to fetch screenshot", details: err.message });
   }
 });
 
@@ -63,13 +66,7 @@ app.get("/html", async (req, res) => {
 
   let browser;
   try {
-    browser = await puppeteer.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath || "/usr/bin/chromium-browser",
-      headless: chromium.headless,
-      defaultViewport: chromium.defaultViewport,
-    });
-
+    browser = await launchBrowser();
     const page = await browser.newPage();
     await page.goto(targetUrl, { waitUntil: "domcontentloaded", timeout: 20000 });
 
@@ -77,11 +74,11 @@ app.get("/html", async (req, res) => {
     await browser.close();
 
     res.set("Content-Type", "text/html");
-    return res.send(content);
+    res.send(content);
   } catch (err) {
     if (browser) await browser.close();
     console.error("❌ HTML Fetch Error:", err.message);
-    return res.status(500).json({ error: "Failed to fetch HTML", details: err.message });
+    res.status(500).json({ error: "Failed to fetch HTML", details: err.message });
   }
 });
 
@@ -94,13 +91,7 @@ app.get("/cookies", async (req, res) => {
 
   let browser;
   try {
-    browser = await puppeteer.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath || "/usr/bin/chromium-browser",
-      headless: chromium.headless,
-      defaultViewport: chromium.defaultViewport,
-    });
-
+    browser = await launchBrowser();
     const page = await browser.newPage();
     await page.goto(targetUrl, { waitUntil: "domcontentloaded", timeout: 20000 });
 
@@ -111,12 +102,14 @@ app.get("/cookies", async (req, res) => {
   } catch (err) {
     if (browser) await browser.close();
     console.error("❌ Cookie Fetch Error:", err.message);
-    return res.status(500).json({ error: "Failed to fetch cookies", details: err.message });
+    res.status(500).json({ error: "Failed to fetch cookies", details: err.message });
   }
 });
 
 // ========== LAUNCH ==========
 const PORT = process.env.PORT || 3000;
+console.log("🛠 Render assigned PORT:", PORT);
+
 app.listen(PORT, () => {
   console.log(`✅ Puppeteer proxy running on port ${PORT}`);
 });
