@@ -32,11 +32,12 @@ app.get("/screenshot", async (req, res) => {
   let browser;
   try {
     browser = await puppeteer.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath || "/usr/bin/chromium-browser",
-      headless: chromium.headless,
-      defaultViewport: chromium.defaultViewport,
-    });
+  args: chromium.args,
+  executablePath: await chromium.executablePath,
+  headless: chromium.headless,
+  defaultViewport: chromium.defaultViewport,
+}
+);
 
     const page = await browser.newPage();
     await page.goto(targetUrl, { waitUntil: "networkidle2", timeout: 20000 });
