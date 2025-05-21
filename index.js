@@ -24,9 +24,14 @@ app.get("/", (req, res) => {
 
 // ========== Browser Launcher ==========
 async function launchBrowser() {
+  const executablePath = await chromium.executablePath;
+  if (!executablePath) {
+    throw new Error("❌ chrome-aws-lambda executablePath not found");
+  }
+
   return await puppeteer.launch({
     args: chromium.args,
-    executablePath: await chromium.executablePath,
+    executablePath,
     headless: chromium.headless,
     defaultViewport: chromium.defaultViewport,
   });
