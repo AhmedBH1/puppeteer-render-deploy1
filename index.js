@@ -26,10 +26,10 @@ app.get("/", (req, res) => {
 async function launchBrowser() {
   let executablePath = await chromium.executablePath;
 
-  // Fallback for environments like Render where chrome-aws-lambda won't resolve
+  // Render doesn't support chrome-aws-lambda in all instances, use system Chromium
   if (!executablePath) {
-    executablePath = "/usr/bin/google-chrome" || "/usr/bin/chromium-browser";
-    console.warn("⚠️ Falling back to system Chrome:", executablePath);
+    executablePath = "/usr/bin/chromium-browser"; // ✅ Known Render-compatible path
+    console.warn("⚠️ chrome-aws-lambda not available, using system Chromium:", executablePath);
   }
 
   return await puppeteer.launch({
